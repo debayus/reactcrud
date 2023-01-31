@@ -2,23 +2,31 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Api.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Persistence.Models;
 
 namespace Api.Controllers;
 
 [Route("api/[controller]")]
 public class ItemController : Controller
 {
-    // GET: api/values
+    private readonly UserManager<AppUser> _userManager;
+
+    public ItemController(UserManager<AppUser> userManager)
+    {
+        _userManager = userManager;
+    }
+
     [HttpGet]
     public IEnumerable<string> Get()
     {
         return new string[] { "value1", "value2" };
     }
 
-    // GET api/values/5
     [HttpGet("{id}")]
-    public string Get(int id)
+    public ActionResult<string> Get(int id)
     {
         return "value";
     }

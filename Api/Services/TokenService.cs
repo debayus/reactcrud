@@ -7,13 +7,20 @@ using System.Text;
 
 namespace Api.Services;
 
-public class TokenService
+public interface ITokenService
+{
+    public string CreateToken(AppUser user);
+}
+
+public class TokenService : ITokenService
 {
     private readonly IConfiguration _config;
+
     public TokenService(IConfiguration config)
     {
         _config = config;
     }
+
     public string CreateToken(AppUser user)
     {
         var claims = new List<Claim>

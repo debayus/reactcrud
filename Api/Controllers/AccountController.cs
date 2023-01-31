@@ -18,8 +18,9 @@ namespace Api.Controllers;
 public class AccountController : ControllerBase
 {
     private readonly UserManager<AppUser> _userManager;
-    private readonly TokenService _tokenService;
-    public AccountController(UserManager<AppUser> userManager, TokenService tokenService)
+    private readonly ITokenService _tokenService;
+
+    public AccountController(UserManager<AppUser> userManager, ITokenService tokenService)
     {
         _tokenService = tokenService;
         _userManager = userManager;
@@ -29,7 +30,7 @@ public class AccountController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult<AccountUserModel>> Login(AccountLoginParamModel loginDto)
     {
-        var user = await _userManager.Users.FirstOrDefaultAsync(x => x.Email == loginDto.Email);
+        var user = _userManager.Users.FirstOrDefault(x => x.UserName == loginDto.Username);
 
         if (user == null) return Unauthorized();
 
@@ -50,13 +51,13 @@ public class AccountController : ControllerBase
         if (_userManager.Users.Any(x => x.UserName == registerDto.Username))
         {
             ModelState.AddModelError("username", "Username taken");
-            return ValidationProblem();
+            return BadRequest(ModelState);
         }
 
         if (_userManager.Users.Any(x => x.Email == registerDto.Email))
         {
             ModelState.AddModelError("email", "Email taken");
-            return ValidationProblem();
+            return BadRequest(ModelState);
         }
 
         var user = new AppUser
@@ -78,9 +79,10 @@ public class AccountController : ControllerBase
 
     [Authorize]
     [HttpGet]
-    public async Task<ActionResult<AccountUserModel>> GetCurrentUser()
+    public ActionResult<AccountUserModel> GetCurrentUser()
     {
-        var user = await _userManager.Users.FirstOrDefaultAsync(x => x.Email == User.FindFirstValue(ClaimTypes.Email));
+        if (User == null) return NotFound();
+        var user = _userManager.Users.FirstOrDefault(x => x.Email == User.FindFirstValue(ClaimTypes.Email));
         if (user == null) return NotFound();
         return CreateUserObject(user);
     }

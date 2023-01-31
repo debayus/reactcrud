@@ -55,7 +55,7 @@ public static class IdentityServiceExtensions
                 };
             });
 
-        services.AddScoped<TokenService>();
+        services.AddScoped<ITokenService, TokenService>();
 
         return services;
     }

@@ -44,8 +44,7 @@ public static class ApplicationServiceExtensions
 
         services.AddDbContext<DataContext>(options =>
         {
-            string connStr = config.GetConnectionString("DefaultConnection");
-            options.UseSqlite(connStr);
+            options.UseSqlite(config.GetConnectionString("DefaultConnection"));
         });
         services.AddCors(opt =>
         {
