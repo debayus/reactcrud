@@ -12,7 +12,7 @@ public class DataContext : IdentityDbContext<AppUser>
     {
     }
 
-    public DbSet<ItemDbModel> Items { get; set; } = default!;
+    public virtual DbSet<ItemDbModel> Items { get; set; } = default!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

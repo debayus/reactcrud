@@ -18,9 +18,9 @@ namespace Api.Controllers;
 public class AccountController : ControllerBase
 {
     private readonly UserManager<AppUser> _userManager;
-    private readonly ITokenService _tokenService;
+    private readonly TokenService _tokenService;
 
-    public AccountController(UserManager<AppUser> userManager, ITokenService tokenService)
+    public AccountController(UserManager<AppUser> userManager, TokenService tokenService)
     {
         _tokenService = tokenService;
         _userManager = userManager;
@@ -28,7 +28,7 @@ public class AccountController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("login")]
-    public async Task<ActionResult<AccountUserModel>> Login(AccountLoginParamModel loginDto)
+    public async Task<ActionResult<AccountUserModel>> Login(AccountLoginModel loginDto)
     {
         var user = _userManager.Users.FirstOrDefault(x => x.UserName == loginDto.Username);
 
@@ -38,7 +38,7 @@ public class AccountController : ControllerBase
 
         if (result)
         {
-            return CreateUserObject(user);
+            return CreateModelObject(user);
         }
 
         return Unauthorized();
@@ -46,7 +46,7 @@ public class AccountController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("register")]
-    public async Task<ActionResult<AccountUserModel>> Register(AccountRegisterParamModel registerDto)
+    public async Task<ActionResult<AccountUserModel>> Register(AccountRegisterModel registerDto)
     {
         if (_userManager.Users.Any(x => x.UserName == registerDto.Username))
         {
@@ -71,7 +71,7 @@ public class AccountController : ControllerBase
 
         if (result.Succeeded)
         {
-            return CreateUserObject(user);
+            return CreateModelObject(user);
         }
 
         return BadRequest(result.Errors);
@@ -84,10 +84,10 @@ public class AccountController : ControllerBase
         if (User == null) return NotFound();
         var user = _userManager.Users.FirstOrDefault(x => x.Email == User.FindFirstValue(ClaimTypes.Email));
         if (user == null) return NotFound();
-        return CreateUserObject(user);
+        return CreateModelObject(user);
     }
 
-    private AccountUserModel CreateUserObject(AppUser user)
+    private AccountUserModel CreateModelObject(AppUser user)
     {
         return new AccountUserModel
         {

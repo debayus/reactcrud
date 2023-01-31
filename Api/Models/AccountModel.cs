@@ -10,7 +10,7 @@ public class AccountUserModel
     public string Username { get; set; } = default!;
 }
 
-public class AccountLoginParamModel
+public class AccountLoginModel
 {
     [Required]
     public string Username { get; set; } = default!;
@@ -19,7 +19,7 @@ public class AccountLoginParamModel
     public string Password { get; set; } = default!;
 }
 
-public class AccountRegisterParamModel
+public class AccountRegisterModel
 {
     [Required]
     [EmailAddress]

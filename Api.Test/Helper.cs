@@ -7,7 +7,10 @@ using Castle.Core.Configuration;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Moq;
+using Persistence;
 using Persistence.Models;
 
 namespace Api.Test;
@@ -40,11 +43,13 @@ public class Helper
         return mgr;
     }
 
-    public static Mock<ITokenService> MockTokenService()
+    public static TokenService GetTokenService()
     {
-        var mgr = new Mock<ITokenService>();
-        mgr.Setup(x => x.CreateToken(It.IsIn<AppUser>())).Returns("TOKEN");
-        return mgr;
+        var inMemorySettings = new Dictionary<string, string> {
+            {"TokenKey", "super secret key"},
+        };
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
+        return new TokenService(configuration);
     }
 
     public static IList<ValidationResult> ValidateModel(object model, string? containMessage = null)
@@ -74,6 +79,13 @@ public class Helper
                     })
             }
         };
+    }
+
+    public static DataContext GetDbContext()
+    {
+        var options = new DbContextOptionsBuilder<DataContext>().UseInMemoryDatabase(databaseName: "temp").Options;
+        var _db = new DataContext(options);
+        return _db;
     }
 }
 

@@ -2,51 +2,87 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Api.Models;
 using Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Persistence;
 using Persistence.Models;
 
 namespace Api.Controllers;
 
+[Authorize]
 [Route("api/[controller]")]
 public class ItemController : Controller
 {
-    private readonly UserManager<AppUser> _userManager;
+    private readonly DataContext _db;
 
-    public ItemController(UserManager<AppUser> userManager)
+    public ItemController(DataContext db)
     {
-        _userManager = userManager;
+        _db = db;
     }
 
-    [HttpGet]
-    public IEnumerable<string> Get()
+    [HttpGet("List")]
+    public ActionResult<List<ItemModel>> List()
     {
-        return new string[] { "value1", "value2" };
+        var models = _db.Items.ToList();
+        return models.ConvertAll(x => CreateModelObject(x));
     }
 
     [HttpGet("{id}")]
-    public ActionResult<string> Get(int id)
+    public ActionResult<ItemModel> Get(Guid id)
     {
-        return "value";
+        var dbModel = _db.Items.FirstOrDefault(x => x.Id == id);
+        if (dbModel == null) return NotFound();
+        return CreateModelObject(dbModel);
     }
 
-    // POST api/values
     [HttpPost]
-    public void Post([FromBody]string value)
+    public ActionResult<ItemModel> Post(ItemPostPutModel model)
     {
+        var dbModel = new ItemDbModel()
+        {
+            Title = model.Title,
+        };
+
+        _db.Items.Add(dbModel);
+        _db.SaveChanges();
+
+        return CreateModelObject(dbModel);
     }
 
-    // PUT api/values/5
-    [HttpPut("{id}")]
-    public void Put(int id, [FromBody]string value)
+    [HttpPost("{id}")]
+    public ActionResult<ItemModel> Put(Guid id, ItemPostPutModel model)
     {
+        var dbModel = _db.Items.FirstOrDefault(x => x.Id == id);
+        if (dbModel == null) return NotFound();
+
+        dbModel.Title = model.Title;
+        _db.SaveChanges();
+
+        return CreateModelObject(dbModel);
     }
 
-    // DELETE api/values/5
     [HttpDelete("{id}")]
-    public void Delete(int id)
+    public ActionResult<ItemModel> Delete(Guid id)
     {
+        var dbModel = _db.Items.FirstOrDefault(x => x.Id == id);
+        if (dbModel == null) return NotFound();
+
+        _db.Remove(dbModel);
+        _db.SaveChanges();
+
+        return Ok();
+    }
+
+    private static ItemModel CreateModelObject(ItemDbModel model)
+    {
+        return new ItemModel
+        {
+            Id = model.Id,
+            Title = model.Title,
+        };
     }
 }
 

@@ -1,21 +1,8 @@
-﻿using System;
-using Api.Controllers;
+﻿using Api.Controllers;
 using Api.Models;
-using Api.Services;
-using Castle.Core.Configuration;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Moq;
-using Persistence.Models;
-using System.Net;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using System.Net.Http;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.AspNetCore.Routing;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
+using Persistence.Models;
 
 namespace Api.Test;
 
@@ -26,14 +13,12 @@ public class AccountControllerTest
     [InlineData("", "", 2)]
     public void LoginParam_Validation(string username, string pass, int expectedResult)
     {
-        var model = new AccountLoginParamModel{};
-        Assert.Equal(2, Helper.ValidateModel(model).Count);
-
-        model = new AccountLoginParamModel
+        var model = new AccountLoginModel
         {
             Username = username,
             Password = pass,
         };
+
         Assert.Equal(expectedResult, Helper.ValidateModel(model).Count);
     }
 
@@ -43,13 +28,14 @@ public class AccountControllerTest
     [InlineData("test", "test@test.com", "test", "test", 0)]
     public void RegisterParam_Validation(string displayName, string email, string username, string pass, int expectedResult)
     {
-        var model = new AccountRegisterParamModel()
+        var model = new AccountRegisterModel()
         {
             DisplayName = displayName,
             Email = email,
             Username = username,
             Password = pass,
         };
+
         Assert.Equal(expectedResult, Helper.ValidateModel(model).Count);
     }
 
@@ -57,10 +43,10 @@ public class AccountControllerTest
     public async void Login_Success()
     {
         var userManager = Helper.MockUserManager().Object;
-        var tokenService = Helper.MockTokenService().Object;
+        var tokenService = Helper.GetTokenService();
         var controller = new AccountController(userManager, tokenService);
 
-        var response = await controller.Login(new AccountLoginParamModel()
+        var response = await controller.Login(new AccountLoginModel()
         {
             Username = "test",
             Password = "123456",
@@ -73,10 +59,10 @@ public class AccountControllerTest
     public async void Login_Unauthorized()
     {
         var userManager = Helper.MockUserManager().Object;
-        var tokenService = Helper.MockTokenService().Object;
+        var tokenService = Helper.GetTokenService();
         var controller = new AccountController(userManager, tokenService);
 
-        var response = await controller.Login(new AccountLoginParamModel()
+        var response = await controller.Login(new AccountLoginModel()
         {
             Username = "test2",
             Password = "123456",
@@ -89,10 +75,10 @@ public class AccountControllerTest
     public async void Register_Success()
     {
         var userManager = Helper.MockUserManager().Object;
-        var tokenService = Helper.MockTokenService().Object;
+        var tokenService = Helper.GetTokenService();
         var controller = new AccountController(userManager, tokenService);
 
-        var response = await controller.Register(new AccountRegisterParamModel()
+        var response = await controller.Register(new AccountRegisterModel()
         {
             Email = "test2@test.com",
             Password = "123456",
@@ -109,10 +95,10 @@ public class AccountControllerTest
     public async void Register_BadRequest(string email, string username)
     {
         var userManager = Helper.MockUserManager().Object;
-        var tokenService = Helper.MockTokenService().Object;
+        var tokenService = Helper.GetTokenService();
         var controller = new AccountController(userManager, tokenService);
 
-        var response = await controller.Register(new AccountRegisterParamModel()
+        var response = await controller.Register(new AccountRegisterModel()
         {
             Email = email,
             Password = "123456",
@@ -127,7 +113,7 @@ public class AccountControllerTest
     public void GetCurrentUser_Success()
     {
         var userManager = Helper.MockUserManager().Object;
-        var tokenService = Helper.MockTokenService().Object;
+        var tokenService = Helper.GetTokenService();
 
         var controller = new AccountController(userManager, tokenService)
         {
@@ -143,7 +129,7 @@ public class AccountControllerTest
     public void GetCurrentUser_Unauthorized()
     {
         var userManager = Helper.MockUserManager().Object;
-        var tokenService = Helper.MockTokenService().Object;
+        var tokenService = Helper.GetTokenService();
 
         var controller = new AccountController(userManager, tokenService)
         {
